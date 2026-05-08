@@ -1,48 +1,82 @@
-name: Build APK
+name: Build Nanzo Theme APK
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
+  workflow_dispatch:
+ 
+permissions:
+  contents: write
+ 
 jobs:
   build:
+    name: Build Nanzo Release
     runs-on: ubuntu-latest
+ 
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Set up Flutter
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+ 
+      - name: 🛠 Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.32.2'
-          channel: 'stable'
-
-      - name: Android SDK Fix (SDK 35/34 android.jar swap)
-        run: |
-          mkdir -p $ANDROID_HOME/platforms/android-35
-          cp $ANDROID_HOME/platforms/android-34/android.jar $ANDROID_HOME/platforms/android-35/android.jar
-          echo "Fixed Android SDK 35 by copying android.jar from SDK 34"
-
-      - name: Generate local.properties
-        run: |
-          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
-          echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
-
-      - name: Install dependencies
+          flutter-version: "3.32.2"
+          channel: stable
+          cache: true
+ 
+      - name: 📦 Install Dependencies
         run: flutter pub get
+ 
+      - name: ✅ Ensure package_config.json exists
+        run: |
+          if [ ! -f .dart_tool/package_config.json ]; then
+            flutter pub get
+          fi
 
-      - name: Build APK
-        run: flutter build apk --release
+      - name: 🧼 Clean Build Cache
+        run: flutter clean || true
+        continue-on-error: true
+ 
+      - name: 🧩 Install Android SDK 35
+        run: |
+          mkdir -p "$ANDROID_HOME/cmdline-tools/latest"
+          cd "$ANDROID_HOME/cmdline-tools/latest"
+          curl -s -o sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q sdk.zip
+          rm sdk.zip
+          yes | ./bin/sdkmanager --licenses
+          yes | ./bin/sdkmanager "platforms;android-35"
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v3
+      - name: 🧹 Remove broken android.jar from SDK 35
+        run: |
+          echo "🗑️ Deleting broken android.jar from SDK 35..."
+          rm -f $ANDROID_HOME/platforms/android-35/android.jar
+
+      - name: ⬇️ Install Android SDK 34
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34"
+
+      - name: 🔁 Move android.jar from SDK 34 → SDK 35
+        run: |
+          echo "📦 Copying android.jar from SDK 34 to 35..."
+          cp $ANDROID_HOME/platforms/android-34/android.jar $ANDROID_HOME/platforms/android-35/android.jar
+
+      - name: ✅ Verify android.jar fix
+        run: |
+          if [ ! -f "$ANDROID_HOME/platforms/android-35/android.jar" ]; then
+            echo "❌ android.jar repair failed!"
+            exit 1
+          fi
+       
+      - name: 🎨 Generate App Icons
+        run: flutter pub run flutter_launcher_icons || echo "Icons generation skipped"
+
+      - name: 🏗️ Build Nanzo APK
+        run: |
+          flutter build apk --release
+ 
+      - name: 🚀 Upload Nanzo Build
+        uses: actions/upload-artifact@v4
         with:
-          name: app-release
+          name: Nanzo-Theme-Release
           path: build/app/outputs/flutter-apk/app-release.apk
