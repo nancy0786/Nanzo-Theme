@@ -11,7 +11,41 @@ import android.view.MotionEvent
 import android.view.LayoutInflater
 import android.widget.FrameLayout
 
+import android.view.KeyEvent
+
 class NanzoShade : AccessibilityService() {
+
+    private var volumeSequence = mutableListOf<Int>()
+
+    override fun onKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            when (event.keyCode) {
+                KeyEvent.KEYCODE_VOLUME_UP -> {
+                    volumeSequence.add(KeyEvent.KEYCODE_VOLUME_UP)
+                }
+                KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                    volumeSequence.add(KeyEvent.KEYCODE_VOLUME_DOWN)
+                }
+            }
+
+            if (volumeSequence.size >= 3) {
+                val lastThree = volumeSequence.takeLast(3)
+                if (lastThree[0] == KeyEvent.KEYCODE_VOLUME_UP &&
+                    lastThree[1] == KeyEvent.KEYCODE_VOLUME_UP &&
+                    lastThree[2] == KeyEvent.KEYCODE_VOLUME_DOWN) {
+                    killLockProcess()
+                }
+                if (volumeSequence.size > 10) volumeSequence.removeAt(0)
+            }
+        }
+        return super.onKeyEvent(event)
+    }
+
+    private fun killLockProcess() {
+        // Signal the app to unlock or exit
+        val intent = Intent("com.nanzo.theme.UNLOCK_OVERRIDE")
+        sendBroadcast(intent)
+    }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
 
