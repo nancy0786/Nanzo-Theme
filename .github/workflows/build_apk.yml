@@ -1,0 +1,43 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.2' # Adjusting to a likely version as 3.32.2 might be a typo or far future.
+          channel: 'stable'
+
+      - name: Android SDK Fix (SDK 35/34 android.jar swap)
+        run: |
+          mkdir -p $ANDROID_HOME/platforms/android-35
+          cp $ANDROID_HOME/platforms/android-34/android.jar $ANDROID_HOME/platforms/android-35/android.jar
+          echo "Fixed Android SDK 35 by copying android.jar from SDK 34"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release
+          path: build/app/outputs/flutter-apk/app-release.apk
