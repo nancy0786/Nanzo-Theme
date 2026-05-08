@@ -30,6 +30,11 @@ jobs:
           cp $ANDROID_HOME/platforms/android-34/android.jar $ANDROID_HOME/platforms/android-35/android.jar
           echo "Fixed Android SDK 35 by copying android.jar from SDK 34"
 
+      - name: Generate local.properties
+        run: |
+          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
+          echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
+
       - name: Install dependencies
         run: flutter pub get
 
