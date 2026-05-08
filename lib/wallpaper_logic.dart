@@ -85,7 +85,8 @@ class _WallpaperManagerState extends State<WallpaperManager> {
   Future<void> _mockPickImage(String layer, String orientation) async {
     // Mocking image selection
     final prefs = await SharedPreferences.getInstance();
-    final path = '/sdcard/Download/mock_${layer}_$orientation.jpg';
+    final docDir = await getApplicationDocumentsDirectory();
+    final path = '${docDir.path}/mock_${layer}_$orientation.jpg';
     await prefs.setString('${layer}_$orientation', path);
     _loadPaths();
   }

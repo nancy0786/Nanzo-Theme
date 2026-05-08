@@ -12,6 +12,8 @@ jobs:
   build:
     name: Build Nanzo Release
     runs-on: ubuntu-latest
+    env:
+      GRADLE_OPTS: "-Dorg.gradle.jvmargs='-Xmx4g'"
  
     steps:
       - name: 📥 Checkout Repository
