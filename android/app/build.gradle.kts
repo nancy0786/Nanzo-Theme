@@ -1,4 +1,4 @@
-import java.util.Properties
+import java.util.Properties as JavaProperties
 
 plugins {
     id("com.android.application")
@@ -6,7 +6,7 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-val localProperties = Properties()
+val localProperties = JavaProperties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     localPropertiesFile.inputStream().use { localProperties.load(it) }
