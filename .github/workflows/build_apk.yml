@@ -69,7 +69,12 @@ jobs:
             echo "❌ android.jar repair failed!"
             exit 1
           fi
-       
+
+      - name: 📝 Create local.properties
+        run: |
+          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
+          echo "sdk.dir=$ANDROID_HOME" >> android/local.properties
+
       - name: 🎨 Generate App Icons
         run: flutter pub run flutter_launcher_icons || echo "Icons generation skipped"
 
