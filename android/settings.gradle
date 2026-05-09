@@ -7,14 +7,7 @@ pluginManagement {
         }
 
         def sdkPath = properties.getProperty("flutter.sdk")
-        if (sdkPath == null) {
-            sdkPath = System.getenv("FLUTTER_ROOT")
-        }
-        if (sdkPath == null) {
-            sdkPath = System.getenv("FLUTTER_HOME")
-        }
-
-        assert sdkPath != null, "flutter.sdk not set in local.properties and FLUTTER_ROOT environment variable not found. This is required to locate the Flutter SDK."
+        assert sdkPath != null, "flutter.sdk not set in local.properties"
         return sdkPath
     }()
 
