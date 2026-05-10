@@ -1,0 +1,30 @@
+name: Generate Android with Gradle
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate:
+    name: Setup Android Folder
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.32.2"
+
+      - name: Generate Android Folder
+        run: flutter create .
+
+      - name: Remove .kts Files
+        run: find android/ -name "*.kts" -delete
+
+      - name: Restore your .gradle files
+        run: |
+          git checkout main -- android/build.gradle android/settings.gradle android/app/build.gradle
+      - name: Show Android Folder Structure
+        run: find android/ -type f
